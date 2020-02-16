@@ -48,6 +48,67 @@ class NeuralModel(nn.Module):
         output = self.fc2(after_fc1)
         return output
 
+class FCModel(nn.Module):
+
+    def __init__(self, custom = True):
+        super(FCModel, self).__init__()
+
+        self.fc1 = nn.Linear(in_features = 784, out_features = 100)
+        self.fc2 = nn.Linear(in_features = 100, out_features = 100)
+        self.fc3 = nn.Linear(in_features = 100, out_features = 50)
+        self.fc4 = nn.Linear(in_features = 50, out_features = 10)
+        self.custom = custom
+
+
+    def forward(self, x):
+        x = self.fc1(x)
+        b = nn.BatchNorm1d(100)
+        x = b(x)
+
+        if self.custom:
+            activation = MandelbrotActivation(100)
+            x = activation(x)
+        else:
+            activation = nn.ReLU()
+            x = activation(x)
+        
+        x = self.fc2(x)
+        b = nn.BatchNorm1d(100)
+        x = b(x)
+
+        if self.custom:
+            activation = MandelbrotActivation(100)
+            x = activation(x)
+        else:
+            activation = nn.ReLU()
+            x = activation(x)
+
+        x = self.fc3(x)
+        b = nn.BatchNorm1d(50)
+        x = b(x)
+
+        if self.custom:
+            activation = MandelbrotActivation(50)
+            x = activation(x)
+        else:
+            activation = nn.ReLU()
+            x = activation(x)
+
+        x = self.fc4(x)
+        b = nn.BatchNorm1d(10)
+        x = b(x)
+
+        if self.custom:
+            activation = MandelbrotActivation(10)
+            x = activation(x)
+        else:
+            activation = nn.ReLU()
+            x = activation(x)
+
+        output = x
+
+        return output 
+
 def train_model(model, train_data, epochs = 10):
     loss_trace = []
     criterion = nn.CrossEntropyLoss()
@@ -64,6 +125,7 @@ def train_model(model, train_data, epochs = 10):
         epoch_loss = 0.0 
         for batch in train_data:
             batch_images, batch_labels = batch
+            batch_images = batch_images.squeeze().reshape(-1, 28*28)
             
             batch_images = batch_images.to(device)
             batch_labels = batch_labels.to(device)
