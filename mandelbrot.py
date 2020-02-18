@@ -151,7 +151,8 @@ class FCModel(nn.Module):
 def train_model(model, train_data, epochs = 10):
     loss_trace = []
     criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    learning_rate = .01 
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
     n_epochs = epochs
     model.train()
@@ -161,6 +162,10 @@ def train_model(model, train_data, epochs = 10):
     print("started training ...")
 
     for epoch in range(n_epochs):
+    	if epoch / 10 ==0:
+    		learning_rate /= 2
+    		optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+
         epoch_loss = 0.0 
         for batch in train_data:
             batch_images, batch_labels = batch
