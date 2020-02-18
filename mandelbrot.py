@@ -15,7 +15,7 @@ device = torch.device("cuda" if (use_cuda and torch.cuda.is_available()) else "c
 class NeuralModel(nn.Module):
     def __init__(self, custom = True):
         super().__init__()
-
+        self.custom = custom
         num_channels = 8
 
         self.conv1 = nn.Conv2d(1, num_channels, kernel_size=5).to(device)
@@ -26,7 +26,7 @@ class NeuralModel(nn.Module):
         self.b2 = nn.BatchNorm2d(num_channels, eps=1e-05, momentum=0.5, affine=True).to(device)
 
         self.conv3 = nn.Conv2d(num_channels, num_channels, kernel_size=5).to(device)
-        self.mpool3 = nn.MaxPool2d(2),
+        self.mpool3 = nn.MaxPool2d(2)
         self.b3 = nn.BatchNorm2d(num_channels, eps=1e-05, momentum=0.5, affine=True).to(device)
 
         self.fc1 = nn.Linear(num_channels * 4 ** 2, 20).to(device)
@@ -38,7 +38,7 @@ class NeuralModel(nn.Module):
         x = self.b1(x)
 
         if self.custom:
-            activation = MandelbrotActivation(x.shape)
+            activation = MandelbrotActivation(x.shape).to(device)
             x = activation(x)
         else:
             activation = nn.ReLU()
@@ -48,27 +48,27 @@ class NeuralModel(nn.Module):
         x = self.b1(x)
 
         if self.custom:
-            activation = MandelbrotActivation(x.shape)
+            activation = MandelbrotActivation(x.shape).to(device)
             x = activation(x)
         else:
             activation = nn.ReLU()
             x = activation(x)
 
         x = self.conv3(x)
-        x = self.mpool2(x)
+        x = self.mpool3(x)
         x = self.b3(x)
 
         if self.custom:
-            activation = MandelbrotActivation(x.shape)
+            activation = MandelbrotActivation(x.shape).to(device)
             x = activation(x)
         else:
             activation = nn.ReLU()
             x = activation(x)
 
-        x = self.fc1(x)
+        x = self.fc1(x.view(x.shape[0], -1))
 
         if self.custom:
-            activation = MandelbrotActivation(x.shape)
+            activation = MandelbrotActivation(x.shape).to(device)
             x = activation(x)
         else:
             activation = nn.ReLU()
@@ -77,7 +77,7 @@ class NeuralModel(nn.Module):
         x = self.fc2(x)
 
         if self.custom:
-            activation = MandelbrotActivation(x.shape)
+            activation = MandelbrotActivation(x.shape).to(device)
             x = activation(x)
         else:
             activation = nn.ReLU()
