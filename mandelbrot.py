@@ -166,24 +166,24 @@ def train_model(model, train_data, epochs = 10):
     		learning_rate /= 2
     		optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
-        epoch_loss = 0.0 
-        for batch in train_data:
-            batch_images, batch_labels = batch
+    	epoch_loss = 0.0 
+    	for batch in train_data:
+    		batch_images, batch_labels = batch
 
-            batch_images = batch_images.to(device)
-            batch_labels = batch_labels.to(device)
+    		batch_images = batch_images.to(device)
+    		batch_labels = batch_labels.to(device)
 
-            batch_output = model(batch_images)
+    		batch_output = model(batch_images)
             
-            loss = criterion(batch_output, batch_labels)
+    		loss = criterion(batch_output, batch_labels)
             
-            optimizer.zero_grad()
-            loss.backward()
-            epoch_loss += loss.item()
-            optimizer.step()
+    		optimizer.zero_grad()
+    		loss.backward()
+    		epoch_loss += loss.item()
+    		optimizer.step()
         
-        print("the loss after processing this epoch is: ", epoch_loss)
-        loss_trace.append(epoch_loss)
+    	print("the loss after processing this epoch is: ", epoch_loss)
+    	loss_trace.append(epoch_loss)
     print("Training completed.")
     print("=*="*20)
     return model, loss_trace
