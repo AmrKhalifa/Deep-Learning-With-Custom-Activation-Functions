@@ -17,35 +17,74 @@ class NeuralModel(nn.Module):
         super().__init__()
 
         num_channels = 8
-        if custom:
-        	self.activation_function = MandelbrotActivation()
-        else:
-        	self.activation_function = nn.ReLU(inplace = True)
-        
-        self.conv = nn.Sequential(
 
-            nn.Conv2d(1, num_channels, kernel_size=5),
-            nn.MaxPool2d(2),
-            nn.BatchNorm2d(num_channels, eps=1e-05, momentum=0.5, affine=True),
-            self.activation_function,
+        self.conv1 = nn.Conv2d(1, num_channels, kernel_size=5).to(device)
+        self.mpool1= nn.MaxPool2d(2).to(device)
+        self.b1 = nn.BatchNorm2d(num_channels, eps=1e-05, momentum=0.5, affine=True).to(device)
 
-            nn.Conv2d(num_channels, num_channels, kernel_size=3, padding=1),
-            nn.BatchNorm2d(num_channels, eps=1e-05, momentum=0.5, affine=True),
-            self.activation_function,
+        self.conv2 = nn.Conv2d(num_channels, num_channels, kernel_size=3, padding=1).to(device)
+        self.b2 = nn.BatchNorm2d(num_channels, eps=1e-05, momentum=0.5, affine=True).to(device)
 
-            nn.Conv2d(num_channels, num_channels, kernel_size=5),
-            nn.MaxPool2d(2),
-            nn.BatchNorm2d(num_channels, eps=1e-05, momentum=0.5, affine=True),
-            self.activation_function
+        self.conv3 = nn.Conv2d(num_channels, num_channels, kernel_size=5).to(device)
+        self.mpool3 = nn.MaxPool2d(2),
+        self.b3 = nn.BatchNorm2d(num_channels, eps=1e-05, momentum=0.5, affine=True).to(device)
 
-        )
-        self.fc1 = nn.Linear(num_channels * 4 ** 2, 20)
-        self.fc2 = nn.Linear(20, 10)
+        self.fc1 = nn.Linear(num_channels * 4 ** 2, 20).to(device)
+        self.fc2 = nn.Linear(20, 10).to(device)
 
     def forward(self, x):
-        convolved = self.conv(x)
-        after_fc1 = self.activation_function(self.fc1(convolved.view(convolved.size(0), -1)))
-        output = self.fc2(after_fc1)
+        x = self.conv1(x)
+        x = self.mpool1(x)
+        x = self.b1(x)
+
+        if self.custom:
+            activation = MandelbrotActivation(x.shape)
+            x = activation(x)
+        else:
+            activation = nn.ReLU()
+            x = activation(x)
+        
+        x = self.conv2(x)
+        x = self.b1(x)
+
+        if self.custom:
+            activation = MandelbrotActivation(x.shape)
+            x = activation(x)
+        else:
+            activation = nn.ReLU()
+            x = activation(x)
+
+        x = self.conv3(x)
+        x = self.mpool2(x)
+        x = self.b3(x)
+
+        if self.custom:
+            activation = MandelbrotActivation(x.shape)
+            x = activation(x)
+        else:
+            activation = nn.ReLU()
+            x = activation(x)
+
+        x = self.fc1(x)
+
+        if self.custom:
+            activation = MandelbrotActivation(x.shape)
+            x = activation(x)
+        else:
+            activation = nn.ReLU()
+            x = activation(x)
+
+        x = self.fc2(x)
+
+        if self.custom:
+            activation = MandelbrotActivation(x.shape)
+            x = activation(x)
+        else:
+            activation = nn.ReLU()
+            x = activation(x)
+
+        output = x
+        
         return output
 
 class FCModel(nn.Module):
@@ -125,17 +164,19 @@ def train_model(model, train_data, epochs = 10):
         epoch_loss = 0.0 
         for batch in train_data:
             batch_images, batch_labels = batch
-            batch_images = batch_images.squeeze().reshape(-1, 28*28)
-            
+
             batch_images = batch_images.to(device)
             batch_labels = batch_labels.to(device)
 
             batch_output = model(batch_images)
+            
             loss = criterion(batch_output, batch_labels)
+            
             optimizer.zero_grad()
             loss.backward()
             epoch_loss += loss.item()
             optimizer.step()
+        
         print("the loss after processing this epoch is: ", epoch_loss)
         loss_trace.append(epoch_loss)
     print("Training completed.")
